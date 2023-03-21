@@ -9,4 +9,4 @@ Next steps:
 - Tunes the parameter for Q, Q_f and R because the behaviour changes a lot - done
 - Add arrow for the force applied to the first mass in the final plot - done
 
-- compare the behaviour by changing the timestep (0.001 - 0.003 - 0.005 - 0.01 
+- compare the behaviour by changing the timestep (0.001 - 0.003 - 0.005 - 0.01) 
