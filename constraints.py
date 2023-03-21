@@ -58,7 +58,8 @@ class CircleConstraint:
         x=x.reshape(6*self.system.n_masses,1)
         x_next = self.system.transition(x, np.zeros(self.system.control_size))        
         #print(x_next) 
-        if k in [2990,2991,2992,2993,2994,2995,2996,2997,2998,2998,2999,3000]:
+        if k in range(490,501):
+        #if k in [990,991,992,993,994,995,996,997,998,999,1000]:
             length = (x_next[self.start] - self.center[0])**2 + (x_next[self.start+1] - self.center[1])**2
         #print(x_next[self.start:self.start+2], self.r**2 - length)
             return -(self.r**2 - length)
@@ -71,7 +72,7 @@ class CircleConstraint:
         x=x.reshape(6*self.system.n_masses,1)
         x_next = self.system.transition(x, np.zeros(self.system.control_size))
         result = np.zeros(x.shape)
-        if k in [2990,2991,2992,2993,2994,2995,2996,2997,2998,2998,2999,3000]:
+        if k in range(990,1001):
             result[self.start] = 2*(x_next[self.start] - self.center[0])
             result[self.start+1] = 2*(x_next[self.start+1] - self.center[1])
             result[self.start+self.system.n_masses] = 2*(x_next[self.start] - self.center[0]) * self.system.dt
@@ -90,31 +91,45 @@ class CircleConstraint:
 #         length = np.array([abs(x_next[0] - self.center[0]) , abs(x_next[1] - self.center[1]), abs(x_next[2] - self.center[2])])
 #         return (self.r - length)
 
-class BoxSurface_xy:
-    def __init__(self,center,dist,system):
-        self.center=center
-        self.dist=dist
+class BoxConstraint:
+    def __init__(self,ux,lx,uy,ly,uz,lz,system, horizon):
+        self.ux=ux
+        self.uy=uy
+        self.uz=uz
+        self.lx=lx
+        self.ly=ly
+        self.lz=lz
         self.system=system
+        self.horizon=horizon
         
-    def evaluate_constraint(self,x):
-        x=x.reshape(18,1)
+    def evaluate_constraint(self,x,k):
+        x=x.reshape(6*self.system.n_masses,1)
         x_next = self.system.transition(x, np.zeros(self.system.control_size))
-        p,_=np.vsplit(x_next,2)
-        p=p.reshape(3,3)
-        px=p[2,0]
-        distance=np.max(abs(px-self.center))
-        return -(self.dist-distance) #should be inside
-    
-    def evaluate_constraint_J(self, x):
-        x=x.reshape(18,1)
-        x_next = self.system.transition(x, np.zeros(self.system.control_size))
-        result = np.zeros(x.shape)
-        result[0] = -1
-        result[1] = -1
-        result[2] = -1
-        result[3] = - self.system.dt
-        result[4] = - self.system.dt
-        result[5] = - self.system.dt
-        return np.ravel(result)
+        p,v=np.vsplit(x_next,2)
+        p=p.reshape(self.system.n_masses,3)
+        v=v.reshape(self.system.n_masses,3)
+        if k not in range(self.horizon-10,self.horizon+1):
+            for i in range(self.system.n_masses):
+                if p[i,0] >= self.lx and p[i,0] <=self.ux:
+                    if p[i,1] >= self.ly and p[i,1] <=self.uy:
+                        if p[i,2] >= self.lz and p[i,2] <=self.uz:
+                            return 1    
+            return -1       
+        else:
+            return -1
+                        
+                    
+    def evaluate_constraint_J(self, x, k):
+        x=x.reshape(6*self.system.n_masses,1)
+        #x_next = self.system.transition(x, np.zeros(self.system.control_size))
+
+        if k not in range(self.horizon-10,self.horizon+1):
+            result = -np.ones(x.shape) * self.system.dt
+            for i in range(self.system.n_masses*3):
+                result[i]= -1
+            return np.ravel(result)
+        else:
+            result = np.zeros(x.shape)
+            return np.ravel(result)
         
   
