@@ -5,6 +5,8 @@ I started with a simple circle constraint on x and y position of the last two ma
 The jit function is applied to the transition of the state and the speed of the algorithm is improved a lot.
 
 Next steps:
-- Add box constraints and contact model for it\n
-- Tunes the parameter for Q, Q_f and R because the behaviour changes a lot\n
-- Add arrow for the force applied to the first mass in the final plot\n
+- Add box constraints and contact model for it - done
+- Tunes the parameter for Q, Q_f and R because the behaviour changes a lot - done
+- Add arrow for the force applied to the first mass in the final plot - done
+
+- compare the behaviour by changing the timestep (0.001 - 0.003 - 0.005 - 0.01 
