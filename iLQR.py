@@ -19,7 +19,7 @@ class LQR:
         self.K=np.zeros((self.system.control_size, self.system.state_size, self.horizon))
         self.delta_V1=np.zeros(self.horizon)
         self.delta_V2=np.zeros(self.horizon)
-        self.max_iter=35
+        self.max_iter=100
         
     def set_initial_trajectories(self, x_traj, u_traj):
         self.x_traj = np.copy(x_traj)
@@ -44,7 +44,7 @@ class LQR:
                 u_new_traj[:, i] = np.copy(np.ravel(u))
                 new_J += self.system.calculate_cost(x, u)
                 x = self.system.transition(x, u)
-                print("Forward pass")
+                #print("Forward pass")
             
             # print(new_J.shape)    
             x_new_traj[:, self.horizon] = np.copy(np.ravel(x))
@@ -66,7 +66,7 @@ class LQR:
             if iter == self.max_iter:
                 print('max iter')
                 return x_up,u_up, J_prev
-            if (z < 10 and z > 0.00001): #or iter==1: #line search condition
+            if (z < 30 and z > 1e-8): #or iter==1: #line search condition  z < 10 and 
                 x_up=np.copy(x_new_traj)
                 u_up=np.copy(u_new_traj)
                 
@@ -74,6 +74,7 @@ class LQR:
                 done=1
                 print("Forward pass required: ", iter, " iterations")
                 iter=0
+                #self.alpha=1
                 return x_up,u_up,new_J
                 
             else:

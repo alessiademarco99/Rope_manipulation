@@ -12,10 +12,10 @@ class AL_iLQR:
         self.initial_state=np.copy(initial_state)
         self.constraints = []
         self.tol = 0.01
-        self.penalty=8 #phi
+        self.penalty=10 #phi
          
-        self.max_iterations=35
-        self.max_iterations_al=30
+        self.max_iterations=100
+        self.max_iterations_al=15
         
     def add_constraint(self, constraint):
         self.constraints.append(constraint)
@@ -24,7 +24,7 @@ class AL_iLQR:
     def algorithm(self):
         # Initialization of lambda, mu and phi
         self.multipliers=np.zeros((len(self.constraints),self.horizon))
-        self.mu=1e-4*np.ones((len(self.constraints),self.horizon))
+        self.mu=np.ones((len(self.constraints),self.horizon))
         
         iter_al=0
         
@@ -71,11 +71,12 @@ class AL_iLQR:
                     
                     self.multipliers[i,k]=max(0, self.multipliers[i,k] + self.mu[i,k]*c[i,k])
                     self.mu[i,k]=self.penalty*self.mu[i,k]
+            print(self.multipliers)
             iter_al=iter_al+1
             print("c", c)
             print("max c ",np.max(c))
             
-            self.system.animate_cloth(self.horizon,self.x_traj,self.system.dt,F_history=self.u_traj, gifname=str(iter_al-1)+"_"+str(self.system.dt)+"_"+str(J_new))
+            self.system.animate_cloth(self.horizon,self.x_traj,self.system.dt,F_history=self.u_traj, gifname=str(iter_al-1)+"_"+str(self.system.dt)+"_"+str(J_new)+"_"+str(np.max(c)))
             print(np.max(self.u_traj))
             print(np.min(self.u_traj))
         print("max c ",np.max(c))

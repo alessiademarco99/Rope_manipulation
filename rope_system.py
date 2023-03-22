@@ -219,17 +219,17 @@ class Rope(DynamicalSystem):
         #box
         for k in range(self.n_masses):
             if p[k,0] >= 3.4 and p[k,0] <=6.6:
-                if p[k,1] >= -0.6 and p[k,1] <=0.6:
-                    if p[k,2] >= 1.9 and p[k,2] <=3.28:
-                        if np.isclose(p[k,2],1.9,atol=1e-1):
+                if p[k,1] >= -1.1 and p[k,1] <=1.1:
+                    if p[k,2] >= 1.9 and p[k,2] <=3.3:
+                        if np.isclose(p[k,2],2,atol=1e-1):
                             v=v.at[k,2].set(-0.8*v[k,2])
-                            p=p.at[k,2].set(1.9)
+                            p=p.at[k,2].set(1.8)
                         elif np.isclose(p[k,2],3.2,atol=1e-1):
                             v=v.at[k,2].set(0.0)
-                            p=p.at[k,2].set(3.3)
+                            p=p.at[k,2].set(3.2)
                         if np.isclose(p[k,0],3.5,atol=1e-1):
                             v=v.at[k,0].set(-0.8*v[k,0])
-                            p=p.at[k,0].set(3.4)
+                            p=p.at[k,0].set(3.3)
                 # elif np.isclose(p[k,2],4.2,atol=1e-1):
                 #     v=v.at[k,2].set(0.0)
                 #     p=p.at[k,2].set(4.3)
@@ -257,10 +257,10 @@ class Rope(DynamicalSystem):
                ylim=[-2, 3], 
                zlim=[0, 4]):
         ux=6.5
-        uy=0.5
+        uy=1
         uz=3.2
         lx=3.5
-        ly=-0.5
+        ly=-1
         lz=2.0
         
         p,_=np.vsplit(s,2)
@@ -296,7 +296,7 @@ class Rope(DynamicalSystem):
         for surface in surfaces:
             ax.add_collection3d(Poly3DCollection(surface, facecolors='cyan', linewidths=1, edgecolors='b', alpha=.2))
 
-        sphere = Sphere([0,0,4],3)
+        sphere = Sphere([-2,0,6],5)
         sphere.plot_3d(ax, alpha=0.2)
         ax.set_xlabel('x')
         ax.set_ylabel('y')
@@ -338,7 +338,7 @@ class Rope(DynamicalSystem):
         if not (horizon) % skip == 0:
             n_frames += 1  # this +1 is to ensure the final frame is shown
 
-        anim = animation.FuncAnimation(fig, animate, frames=n_frames, interval=1000*dt*skip)
+        anim = animation.FuncAnimation(fig, animate, frames=n_frames, interval=1000*dt*skip)  
         #plt.show()
         #writergif = animation.PillowWriter(fps=fps_adjusted) 
         if gifname is not None:
