@@ -27,7 +27,7 @@ if __name__ == '__main__':
     #print(system.initial_position(0,0,0))
     horizon=2000
     
-    constraint1=SphereConstraint(system.return_position_actuated_mass(x0), 5, system)
+    constraint1=SphereConstraint(system.return_position_actuated_mass(x0), 3, system)
     constraint2=BoxConstraint(6.5,3.5,1,-1,3.2,2.0,system,horizon)
     
     solver=AL_iLQR(system, x0, horizon)
