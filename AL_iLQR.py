@@ -1,6 +1,8 @@
 from iLQR import LQR
 import numpy as np   
 
+import matplotlib.pyplot as plt 
+
 class AL_iLQR:
     def __init__(self, system, initial_state, horizon):
         self.system=system
@@ -10,7 +12,7 @@ class AL_iLQR:
         self.initial_state=np.copy(initial_state)
         self.constraints = []
         self.tol = 0.01
-        self.tol_c = 0.5
+        self.tol_c=0.5
         self.penalty=10 #phi
          
         self.max_iterations=100
@@ -18,6 +20,7 @@ class AL_iLQR:
         
     def add_constraint(self, constraint):
         self.constraints.append(constraint)
+        
         
     def algorithm(self):
         # Initialization of lambda, mu and phi
@@ -42,11 +45,10 @@ class AL_iLQR:
             for i in range(self.horizon):
                 J_new += self.system.calculate_cost(self.x_traj[:,i],self.u_traj[:,i])
             J_new += self.system.calculate_final_cost(self.x_traj[:,self.horizon])
-            
+            #print((self.x_traj[:,self.horizon]).shape)
             x_new=np.copy(self.x_traj)
             u_new=np.copy(self.u_traj)
             self.diff=[]
-            # line search
             while abs(J_new-J_prev) > self.tol and iter_lq<=self.max_iterations:  
                 J_prev=J_new
                 lqr.backward_pass(self.multipliers,self.mu,x_new,u_new)
@@ -60,6 +62,7 @@ class AL_iLQR:
             
             self.x_traj=np.copy(x_new)
             self.u_traj=np.copy(u_new)
+   
             
             #update value for multipliers
             for i in range(len(self.constraints)): # for each constraint
