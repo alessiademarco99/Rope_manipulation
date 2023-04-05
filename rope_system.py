@@ -68,7 +68,7 @@ class Rope(DynamicalSystem):
         self.n_masses=n_masses
         self.l_rest=1
         self.m=0.3/self.n_masses
-        self.k_elastic=10.0
+        self.k_elastic=140.0
         self.k_shear = 5.0          
         self.k_bend = 1          
         self.c_elastic = self.k_elastic / self.n_masses  # N / (m/s)
@@ -121,6 +121,7 @@ class Rope(DynamicalSystem):
             # Compute the displacement and distance between neighboring particles
             delta_pos = p[i+1,:] - p[i,:]
             delta_vel = v[i+1,:] - v[i,:]
+            #print("delta pos",delta_pos)
             
             dist = np.linalg.norm(delta_pos)
             
@@ -134,7 +135,6 @@ class Rope(DynamicalSystem):
             f=f.at[i].add(f_spring)
             f=f.at[i+1].add(-f_spring)
             
-            # bend springs between two non consecutive masses
             if i < self.n_masses-2:
                 delta_pos = p[i+2,:] - p[i,:]
                 delta_vel = v[i+2,:] - v[i,:]
@@ -153,7 +153,6 @@ class Rope(DynamicalSystem):
             
         return f
     
- 
     def change_of_state(self,s, F_act):
         s=s.reshape(6*self.n_masses,1)
         p,v=np.vsplit(s,2)
@@ -162,6 +161,9 @@ class Rope(DynamicalSystem):
         v=v.reshape(self.n_masses,3)
         
        
+        F = self.hooke_damped(p, v)
+        
+        
         F = F.at[np.index_exp[self.actuated_masses, :]].add(F_act)
         
         a = F / self.m
@@ -170,6 +172,7 @@ class Rope(DynamicalSystem):
         v=v.reshape(self.n_masses*3,1)
         return np.vstack((v, a))
     
+ 
     @partial(jit, static_argnums=(0,1,))
     def RK4(self, f, x, u):
         k1 = f(x, u)
@@ -218,15 +221,15 @@ class Rope(DynamicalSystem):
     
 
     def transition_J(self,x,u):
-        
+
         x_temp=x.reshape(6*self.n_masses,1)
-  
+
         dynamics_jac_state = jacfwd(self.transition, argnums=0)(x_temp,u)
-  
+
         dynamics_jac_control = jacfwd(self.transition, argnums=1)(x_temp,u)
         A = dynamics_jac_state[:,1,:,1]
         B = dynamics_jac_control[:,1,:]
-
+        # print(x)
         return A,B
     
     def plot_rope(self, ax, s, 
@@ -248,7 +251,6 @@ class Rope(DynamicalSystem):
         ax.set_ylim(ylim)
         ax.set_zlim(zlim)
         
-    
         ax.scatter(x, y, z, c='red', s=10)
         ax.plot(x,y,z,c='blue')
         x = [lx,ux,ux,lx],[lx,ux,ux,lx],[lx,lx,lx,lx],[lx,lx,ux,ux],[lx,lx,ux,ux],[ux,ux,ux,ux]
@@ -282,7 +284,7 @@ class Rope(DynamicalSystem):
         fig.subplots_adjust(0,0,1,1,0,0)
         ax = fig.add_subplot(111, projection='3d')
         plt.close()  # prevents duplicate output 
-
+        
         fps_simulation = 1 / dt
         skip = np.floor(fps_simulation / fps).astype(np.int32)
         fps_adjusted = fps_simulation / skip
@@ -291,9 +293,9 @@ class Rope(DynamicalSystem):
 
         def animate(i):
             j = min(i * skip, horizon)
-    
-            p = s_history[:,j].reshape(self.n_masses*6,1)
  
+            p = s_history[:,j].reshape(self.n_masses*6,1)
+
             self.plot_rope(ax, p)
             if F_history is not None:
                 self.plot_arrow(ax, np.ravel(p[0:3]), np.ravel(F_history[:,j]), force_scale) 
@@ -304,7 +306,7 @@ class Rope(DynamicalSystem):
             n_frames += 1  # this +1 is to ensure the final frame is shown
 
         anim = animation.FuncAnimation(fig, animate, frames=n_frames, interval=1000*dt*skip)  
-    
+   
         if gifname is not None:
             anim.save(gifname + '.gif', writer='imagemagick')
 
@@ -316,8 +318,7 @@ class Rope(DynamicalSystem):
         self.plot_rope(p0)
         plt.plot(x_trajectories[0, 0::5], x_trajectories[1, 0::5], 4,color='r')
         ax.set_aspect("equal")
-        # ax.set_xlim(0, 3)
-        # ax.set_ylim(0, 3)
+
         plt.grid()
         plt.show()
         

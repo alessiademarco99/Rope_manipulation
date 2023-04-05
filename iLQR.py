@@ -45,7 +45,7 @@ class LQR:
                 u_new_traj[:, i] = np.copy(np.ravel(u))
                 new_J += self.system.calculate_cost(x, u)
                 x = self.system.transition(x, u)
-                for j in range(1,10):    
+                for j in range(1,10):    # run the simulation for 10 times
                     u_new_traj[:, i+j] = np.copy(np.ravel(u))
                     x_new_traj[:, i+j] = np.copy(np.ravel(x))
                     new_J += self.system.calculate_cost(x, u)
