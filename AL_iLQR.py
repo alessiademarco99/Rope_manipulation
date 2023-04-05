@@ -32,7 +32,7 @@ class AL_iLQR:
         # initial value of the constraints
         c=np.ones((len(self.constraints),self.horizon))
         for i in range(len(self.constraints)): # for each constraint
-            c[i,0]=self.constraints[i].evaluate_constraint(self.initial_state,0) 
+            c[i,0]=self.constraints[i].evaluate_constraint(self.initial_state) 
         
         lqr=LQR(self.system, self.initial_state, self.horizon, self.constraints)
          

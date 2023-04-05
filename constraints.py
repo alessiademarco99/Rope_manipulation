@@ -6,7 +6,7 @@ class SphereConstraint:
         self.r = r
         self.system = system
 
-    def evaluate_constraint(self, x, k):	
+    def evaluate_constraint(self, x):	
 		#evaluate the state to see if the constraint is violated
         x=x.reshape(6*self.system.n_masses,1)
         x_next = self.system.transition(x, np.zeros(self.system.control_size))        
@@ -14,7 +14,7 @@ class SphereConstraint:
         length = (x_next[0] - self.center[0])**2 + (x_next[1] - self.center[1])**2 + (x_next[2] - self.center[2])**2
         return -(self.r**2 - length)
 
-    def evaluate_constraint_J(self, x, k):
+    def evaluate_constraint_J(self, x):
 		#evolve the system for one to evaluate constraint
         x=x.reshape(6*self.system.n_masses,1)
         x_next = self.system.transition(x, np.zeros(self.system.control_size))
