@@ -25,7 +25,7 @@ class LQR:
         self.x_traj = np.copy(x_traj)
         self.u_traj = np.copy(u_traj)
         
-    
+    #provare a non modificare self.best_J ma argomenti e returns
     def forward_pass(self,x_up,u_up,J_prev):
         done=0
         new_J=0
@@ -34,9 +34,10 @@ class LQR:
         x_new_traj = np.zeros((self.system.state_size, self.horizon + 1))
         u_new_traj = np.zeros((self.system.control_size, self.horizon))
         x = np.copy(self.initial_state)
+        #x_new_traj[:, 0] = np.copy(np.ravel(x))
         iter=0
         while done==0:
-            for i in range(self.horizon):
+            for i in range(0,self.horizon,10):
                 x_new_traj[:, i] = np.copy(np.ravel(x))
                 
                 delta_x = x - x_up[:, i].reshape(6*self.system.n_masses,1)
@@ -44,7 +45,14 @@ class LQR:
                 u_new_traj[:, i] = np.copy(np.ravel(u))
                 new_J += self.system.calculate_cost(x, u)
                 x = self.system.transition(x, u)
-         
+                for j in range(1,10):    
+                    u_new_traj[:, i+j] = np.copy(np.ravel(u))
+                    x_new_traj[:, i+j] = np.copy(np.ravel(x))
+                    new_J += self.system.calculate_cost(x, u)
+                    x = self.system.transition(x, u)
+                #print("Forward pass")
+            
+            # print(new_J.shape)    
             x_new_traj[:, self.horizon] = np.copy(np.ravel(x))
             new_J += self.system.calculate_final_cost(x)
             
@@ -54,7 +62,7 @@ class LQR:
             for i in range(self.horizon):
                 J+= self.system.calculate_cost(x_up[:,i], u_up[:,i])
             J+= self.system.calculate_final_cost(x_up[:,self.horizon])
-            
+           
             z=(J-new_J)/(-np.sum(adelta_V))
             print("z ",z)
             print("J_prev ",J)
@@ -64,7 +72,7 @@ class LQR:
             if iter == self.max_iter:
                 print('max iter')
                 return x_up,u_up, J_prev
-            if (z < 15 and z > 1e-8): #or iter==1: #line search condition  
+            if (z < 15 and z > 1e-8): #or iter==1: #line search condition
                 x_up=np.copy(x_new_traj)
                 u_up=np.copy(u_new_traj)
                 
@@ -106,7 +114,7 @@ class LQR:
         pn=ln_x+C_x.T @ (self.multipliers[:,self.horizon-1]+self.Iu @ C)
         Pn=ln_xx+C_x.T @ self.Iu @ C_x
         
-        for i in range(self.horizon - 1, -1, -1):
+        for i in range(self.horizon - 1, -1, -10):
             print(i)
             u = u_new[:, i]
             x = x_new[:, i]
@@ -128,7 +136,7 @@ class LQR:
             else:
                 p=Q_x + self.K[:,:,i+1].T @ Q_uu @ self.d[:,i+1] + self.K[:,:,i+1].T @ Q_u + Q_ux.T @ self.d[:,i+1]
                 P=Q_xx + self.K[:,:,i+1].T @ Q_uu @ self.K[:,:,i+1]+ self.K[:,:,i+1].T @ Q_ux + Q_ux.T @ self.K[:,:,i+1]
-            
+   
             A, B = self.system.transition_J(x,u)  #matrices A and B from dynamics
             Q_x = l_xt + A.T @ p + C_x.T @ (self.multipliers[:,i]+self.Iu @ C)
             Q_u = l_ut + B.T @ p + cu.T @ (self.multipliers[:,i]+self.Iu @ C)
@@ -137,10 +145,10 @@ class LQR:
             Q_xx = l_xxt + A.T @ P @ A + C_x.T @ self.Iu @ C_x
             # print(np.linalg.eigvals(Q_uu) > 0)
             if np.all(np.linalg.eigvals(Q_uu) > 0):
-                
-                self.K[:,:,i]=-inv(Q_uu) @ Q_ux
-                self.d[:,i]=-inv(Q_uu) @ Q_u
-                self.delta_V1[i]=self.d[:,i].T @ Q_u
-                self.delta_V2[i]=0.5*self.d[:,i].T @ Q_uu @ self.d[:,i]
+                for j in range(0,10):
+                    self.K[:,:,i-j]=-inv(Q_uu) @ Q_ux
+                    self.d[:,i-j]=-inv(Q_uu) @ Q_u
+                    self.delta_V1[i-j]=self.d[:,i-j].T @ Q_u
+                    self.delta_V2[i-j]=0.5*self.d[:,i-j].T @ Q_uu @ self.d[:,i-j]
             else:
-                self.reg_factor_u = self.reg_factor_u*5
+                self.reg_factor_u = self.reg_factor_u*5 
